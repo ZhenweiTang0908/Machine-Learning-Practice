@@ -1,0 +1,72 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=1in]{geometry}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\title{A Concise Derivation of Principal Component Analysis}
+\author{Zhenwei Tang}
+\date{}
+\maketitle
+
+\section*{Goal}
+
+Given data points
+\[
+x_i \in \mathbb{R}^p,
+\qquad i=1,\dots,n,
+\]
+PCA aims to construct a lower-dimensional representation
+\[
+y_i = U_k^T(x_i-m),
+\qquad
+y_i \in \mathbb{R}^k,
+\qquad
+U_k \in \mathbb{R}^{p\times k},
+\qquad
+k < p.
+\]
+
+Here, \(m\) is the mean of the data, and the columns of \(U_k\) define the \(k\)-dimensional subspace onto which the data is projected.
+
+% some more text here ...
+
+\section*{Step 1: Center the Data}
+
+The mean of the data is
+\[
+m = \frac{1}{n}\sum_{i=1}^n x_i.
+\]
+
+% some more text here ...
+
+\section*{Conclusion}
+
+PCA starts from the goal
+\[
+y_i = U_k^T(x_i-m),
+\]
+where \(y_i\) is a lower-dimensional representation of \(x_i\).
+
+To preserve as much information as possible, PCA maximizes the variance of the projected data. This leads to the constrained optimization problem
+\[
+\max_v v^TSv
+\quad
+\text{subject to}
+\quad
+v^Tv=1.
+\]
+
+% some more text here ...
+
+\[
+\boxed{
+\text{PCA reduces dimensionality by projecting data onto the directions of maximal variance.}
+}
+\]
+
+\end{document}

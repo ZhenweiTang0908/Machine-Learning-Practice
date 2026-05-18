@@ -1,0 +1,305 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=1in]{geometry}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\title{A Concise Derivation of Principal Component Analysis}
+\author{}
+\date{}
+\maketitle
+
+\section*{Goal}
+
+Given data points
+\[
+x_i \in \mathbb{R}^p,
+\qquad i=1,\dots,n,
+\]
+PCA aims to construct a lower-dimensional representation
+\[
+y_i = U_k^T(x_i-m),
+\qquad
+y_i \in \mathbb{R}^k,
+\qquad
+U_k \in \mathbb{R}^{p\times k},
+\qquad
+k < p.
+\]
+
+Here, \(m\) is the mean of the data, and the columns of \(U_k\) define the \(k\)-dimensional subspace onto which the data is projected.
+
+The goal is to choose \(U_k\) such that the projection preserves as much information as possible.
+
+In PCA, information is measured by variance. Therefore, PCA chooses the projection directions so that the projected data has maximal variance.
+
+\section*{Step 1: Center the Data}
+
+The mean of the data is
+\[
+m = \frac{1}{n}\sum_{i=1}^n x_i.
+\]
+
+Define the centered data points
+\[
+z_i = x_i - m.
+\]
+
+Centering is necessary because PCA should describe how the data varies around its mean, rather than where the whole dataset is located in space.
+
+Thus, the PCA projection becomes
+\[
+y_i = U_k^T z_i.
+\]
+
+\section*{Step 2: Start with a One-Dimensional Projection}
+
+First consider projecting the data onto one direction
+\[
+v \in \mathbb{R}^p.
+\]
+
+We require
+\[
+\|v\|=1,
+\]
+or equivalently
+\[
+v^T v = 1.
+\]
+
+This constraint is necessary because otherwise the projected variance could be made arbitrarily large simply by scaling \(v\).
+
+The projection of \(z_i\) onto \(v\) is
+\[
+v^T z_i.
+\]
+
+Therefore, the variance of the projected data is
+\[
+\operatorname{Var}(v)
+=
+\frac{1}{n-1}
+\sum_{i=1}^n (v^T z_i)^2.
+\]
+
+\section*{Step 3: Write the Objective in Matrix Form}
+
+Define the centered data matrix
+\[
+Z = [z_1,z_2,\dots,z_n]
+\in \mathbb{R}^{p\times n}.
+\]
+
+Define the scatter matrix
+\[
+S = ZZ^T.
+\]
+
+Then
+\[
+\sum_{i=1}^n (v^Tz_i)^2
+=
+v^TZZ^Tv
+=
+v^TSv.
+\]
+
+Hence,
+\[
+\operatorname{Var}(v)
+=
+\frac{1}{n-1}v^TSv.
+\]
+
+Since \(\frac{1}{n-1}\) is constant, maximizing the variance is equivalent to solving
+\[
+\max_v \quad v^TSv
+\]
+subject to
+\[
+v^Tv=1.
+\]
+
+\section*{Step 4: Solve the Constrained Optimization Problem}
+
+This is a constrained optimization problem, so we use the method of Lagrange multipliers.
+
+Define the Lagrangian
+\[
+\mathcal{L}(v,\lambda)
+=
+v^TSv-\lambda(v^Tv-1).
+\]
+
+To find an optimum, take the derivative with respect to \(v\) and set it to zero:
+\[
+\nabla_v \mathcal{L}=0.
+\]
+
+Since \(S\) is symmetric,
+\[
+\nabla_v(v^TSv)=2Sv,
+\]
+and
+\[
+\nabla_v(v^Tv)=2v.
+\]
+
+Therefore,
+\[
+2Sv-2\lambda v=0.
+\]
+
+So
+\[
+Sv=\lambda v.
+\]
+
+This is an eigenvalue equation. Hence, the optimal projection directions must be eigenvectors of the scatter matrix \(S\).
+
+\section*{Step 5: Choose the Direction of Maximal Variance}
+
+Suppose \(v\) is an eigenvector of \(S\), so
+\[
+Sv=\lambda v.
+\]
+
+Then
+\[
+v^TSv
+=
+v^T(\lambda v)
+=
+\lambda v^Tv.
+\]
+
+Because
+\[
+v^Tv=1,
+\]
+we get
+\[
+v^TSv=\lambda.
+\]
+
+Therefore, the variance along direction \(v\) is proportional to the eigenvalue \(\lambda\).
+
+Thus, to maximize the projected variance, we choose the eigenvector with the largest eigenvalue.
+
+This direction is called the first principal component.
+
+\section*{Step 6: Extend to \(k\) Dimensions}
+
+For a \(k\)-dimensional projection, we choose \(k\) orthonormal directions
+\[
+u_1,u_2,\dots,u_k.
+\]
+
+Collect them into the matrix
+\[
+U_k = [u_1,u_2,\dots,u_k]
+\in \mathbb{R}^{p\times k}.
+\]
+
+The orthonormality condition is
+\[
+U_k^TU_k=I_k.
+\]
+
+The projected representation is
+\[
+y_i = U_k^Tz_i
+=
+U_k^T(x_i-m).
+\]
+
+Since each eigenvalue measures the variance preserved by its eigenvector, the best \(k\)-dimensional subspace is obtained by choosing the eigenvectors corresponding to the \(k\) largest eigenvalues:
+\[
+U_k = [u_1,u_2,\dots,u_k],
+\]
+where
+\[
+\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p.
+\]
+
+\section*{Step 7: Reconstruction and Approximation Error}
+
+The projected coordinates are
+\[
+y_i = U_k^Tz_i.
+\]
+
+The reconstruction in the original space is
+\[
+\hat z_i = U_k y_i.
+\]
+
+Substituting \(y_i = U_k^Tz_i\), we get
+\[
+\hat z_i = U_kU_k^Tz_i.
+\]
+
+Thus, the reconstruction of the original point is
+\[
+\hat x_i = m + U_kU_k^T(x_i-m).
+\]
+
+The reconstruction error is
+\[
+z_i-\hat z_i
+=
+z_i-U_kU_k^Tz_i
+=
+(I-U_kU_k^T)z_i.
+\]
+
+Therefore, the total approximation error is
+\[
+\sum_{i=1}^n
+\left\|
+(I-U_kU_k^T)(x_i-m)
+\right\|^2.
+\]
+
+Choosing the eigenvectors with the largest eigenvalues maximizes the retained variance.
+
+Since the total variance is fixed, maximizing retained variance is equivalent to minimizing the remaining reconstruction error.
+
+\section*{Conclusion}
+
+PCA starts from the goal
+\[
+y_i = U_k^T(x_i-m),
+\]
+where \(y_i\) is a lower-dimensional representation of \(x_i\).
+
+To preserve as much information as possible, PCA maximizes the variance of the projected data. This leads to the constrained optimization problem
+\[
+\max_v v^TSv
+\quad
+\text{subject to}
+\quad
+v^Tv=1.
+\]
+
+Using Lagrange multipliers, this becomes the eigenvalue problem
+\[
+Sv=\lambda v.
+\]
+
+Therefore, PCA chooses the eigenvectors of the scatter matrix with the largest eigenvalues.
+
+These directions preserve the largest amount of variance and minimize the approximation error.
+
+\[
+\boxed{
+\text{PCA reduces dimensionality by projecting data onto the directions of maximal variance.}
+}
+\]
+
+\end{document}
