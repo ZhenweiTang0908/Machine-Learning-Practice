@@ -1,34 +1,136 @@
 # Generate code sketch
 
-This project is for practicing the ML methods by implement the methods without ML library and completing small labs.
-
-## Instruction
+This project is for practicing ML methods by implementing them myself instead of directly using ML frameworks.
 
 Write a code sketch of the given ML method with blanks for me to fill in.
 
-Write the code in the ML method corresponding directory, at least a `main.go`.
+Read the derivation pdf under the corresponding method directory before generating the sketch.
 
-Those code files which are not `main.go` should be placed in a src file.
+---
 
-Read the derivation pdf under the corresponding directory before writing the sketch.
+## Goal
 
-## Note
+The goal is:
+- understand the ML algorithm itself
+- understand the implementation workflow
+- practice practical Go project structure
+- learn some Go mechanisms naturally during implementation
 
-- Give a sketch instead of a complete implementation
-- Give enough information to help me to implement the code, including: hints in the head of each code file and each class, function.
-- Give me a step instruction to help me write code step by step
-- Give me enough information about anything you want to add to me in the file `coach_instruction.md`. For example: usage of possible libraries, mechanisim of golang etc.
+Priority:
+1. Help me understand the ML algorithm
+2. Let me implement the core algorithmic logic myself
+3. Avoid wasting time on low-level math implementation
+4. Keep the code simple and practical
 
-- Use at least one design pattern in the code sketch
-- Try to use one practical mechanisim of golang in this sketch
-- You comments should be concise but explanatory.
+---
 
-## Requirement
-- You are allowed to and should use any basic or mechanisim library like math library, threading library. But don't use those ML library which can do ML in one func or one command. Any other except this is allowed.
-- You should consider any lib functions I may use in any functions to be implemented and comment this at the head of the function or class.
-- The coding goal is to get me known of the algorithm instead of doing codign from very scratch or implementing basic math computation like vector operation or probability computing. So try most to use the basic math lib. If you want me to use math lib functions anywhere, comment it at the head of the function and tell me how to use.
-- Try to let me write the least code but understand the algorithm the most.
-- Try to let me understand a design pattern and some go mechanisim as side effect.
+## Important Philosophy
 
-## Goal method
-The goal method is:
+I should implement the core ML logic myself.
+
+However, I should NOT waste time implementing:
+- vector operations
+- matrix containers
+- basic linear algebra operations
+- CSV parsing
+- plotting
+- utility math functions
+
+You SHOULD use math/basic libraries like `gonum` for low-level mathematical operations. But DO NOT use libraries that directly solve the target ML algorithm.
+
+For example:
+- Allowed:
+  - matrix multiplication
+  - vector norm
+  - eigendecomposition utilities
+  - random number generation
+  - plotting
+- NOT allowed:
+  - PCA()
+  - sklearn-like APIs
+  - one-call ML solutions
+  - libraries that directly produce the final ML result
+
+The core algorithm steps must still be implemented by me.
+
+---
+
+## Sketch Requirement
+
+Do NOT provide complete implementations.
+
+For important functions:
+- provide function signatures
+- provide concise but explanatory comments
+- provide pseudocode
+- provide TODO blocks
+- leave key algorithmic parts unfinished
+
+---
+
+## Project Structure Requirement
+
+Write the code inside the corresponding ML method directory.
+
+Requirements:
+- at least one `main.go`
+- non-main logic should be placed under `src/`
+- keep the project structure practical and idiomatic
+
+---
+
+## Teaching Requirement
+
+Give enough information to help me implement the code:
+- hints at the head of each file
+- hints for important functions
+- explanation of important math steps
+- explanation of useful library functions if needed
+
+If some library functions are recommended:
+- explain what they do
+- explain why they are useful
+- explain how to use them briefly
+
+Comments should be concise but explanatory.
+
+---
+
+## Go Requirement
+
+Try to naturally demonstrate practical Go concepts:
+- slices
+- interfaces
+- package organization
+- error handling
+- concurrency only if naturally useful
+
+Do NOT over-engineer the project.
+
+If appropriate, introduce one lightweight design pattern naturally.
+
+---
+
+## Output Requirement
+
+Output in this order:
+
+1. Project structure
+2. File-by-file explanation
+3. Skeleton code
+4. `coach_instruction.md`
+5. Step-by-step implementation order
+
+---
+
+## Learning Goal
+
+The coding goal is:
+- understand the algorithm deeply
+- avoid unnecessary low-level implementation work
+- write as little boilerplate as possible
+- focus on the ML logic itself
+
+---
+
+Now I'm going to learn: 
