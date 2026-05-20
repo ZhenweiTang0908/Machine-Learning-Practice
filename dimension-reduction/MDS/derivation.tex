@@ -1,0 +1,279 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=1in]{geometry}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\title{A Concise Derivation of Classical Multidimensional Scaling}
+\author{Zhenwei Tang}
+\date{}
+\maketitle
+
+% ─────────────────────────────────────────────
+\section*{Goal}
+% ─────────────────────────────────────────────
+
+Given $n$ objects with pairwise \emph{squared} dissimilarities
+\[
+  d_{ij}^{2} \in \mathbb{R}_{\ge 0}, \qquad i,j = 1,\dots,n,
+\]
+Classical MDS (cMDS) aims to find low-dimensional coordinate vectors
+\[
+  z_i \in \mathbb{R}^k, \qquad i = 1,\dots,n, \quad k \ll n,
+\]
+such that the Euclidean distances in the embedding space recover the
+given dissimilarities as faithfully as possible:
+\[
+  \|z_i - z_j\|^2 \approx d_{ij}^{2}.
+\]
+
+The key insight of cMDS is to work with \emph{inner products} rather than
+distances directly, because inner products admit a clean matrix
+factorisation.  The derivation therefore proceeds in two phases:
+(1) convert $d_{ij}^{2}$ into a matrix of inner products, and
+(2) recover the coordinates via eigendecomposition.
+
+% ─────────────────────────────────────────────
+\section*{Step 1: From Distances to Inner Products}
+% ─────────────────────────────────────────────
+
+Suppose the (unknown) coordinates $z_1,\dots,z_n \in \mathbb{R}^k$ are
+\emph{centred}:
+\[
+  \sum_{i=1}^{n} z_i = \mathbf{0}.          \tag{C}
+\]
+Define the \textbf{Gram matrix} $B \in \mathbb{R}^{n\times n}$ by
+\[
+  B_{ij} = z_i^{\top} z_j.
+\]
+Our goal is to express $B_{ij}$ purely in terms of $d_{ij}^{2}$, so that
+we can compute $B$ from the given dissimilarities without knowing $z_i$.
+
+Expand the squared distance:
+\[
+  d_{ij}^{2} = \|z_i - z_j\|^2
+             = \|z_i\|^2 - 2\,z_i^{\top}z_j + \|z_j\|^2
+             = B_{ii} - 2B_{ij} + B_{jj}.     \tag{1}
+\]
+
+Sum (1) over $j = 1,\dots,n$ and use the centring condition (C):
+\[
+  \sum_{j=1}^{n} d_{ij}^{2}
+    = n\,B_{ii} - 2\sum_{j}B_{ij} + \sum_{j}B_{jj}
+    = n\,B_{ii} + \operatorname{tr}(B),
+\]
+because $\sum_{j}B_{ij} = z_i^{\top}\!\sum_j z_j = 0$ by (C).  Hence
+\[
+  \frac{1}{n}\sum_{j=1}^{n} d_{ij}^{2}
+    = B_{ii} + \frac{1}{n}\operatorname{tr}(B).  \tag{2}
+\]
+
+Similarly, summing (1) over $i$:
+\[
+  \frac{1}{n}\sum_{i=1}^{n} d_{ij}^{2}
+    = B_{jj} + \frac{1}{n}\operatorname{tr}(B).  \tag{3}
+\]
+
+Summing (1) over both $i$ and $j$:
+\[
+  \frac{1}{n^2}\sum_{i,j} d_{ij}^{2}
+    = \frac{2}{n}\operatorname{tr}(B).            \tag{4}
+\]
+
+Now solve for $B_{ij}$.  From (1):
+\[
+  B_{ij} = \tfrac{1}{2}\!\left(B_{ii}+B_{jj}-d_{ij}^{2}\right).
+\]
+Substitute (2), (3), and (4) to eliminate $B_{ii}$, $B_{jj}$, and
+$\operatorname{tr}(B)$:
+
+\[
+  B_{ij}
+  = -\tfrac{1}{2}
+    \!\left(
+      d_{ij}^{2}
+      - \frac{1}{n}\sum_{j'}d_{ij'}^{2}
+      - \frac{1}{n}\sum_{i'}d_{i'j}^{2}
+      + \frac{1}{n^2}\sum_{i',j'}d_{i'j'}^{2}
+    \right).   \tag{5}
+\]
+
+\textbf{Why this works:} equation (5) eliminates the unknown norms
+$B_{ii}, B_{jj}$ and the trace by taking row, column, and grand means of
+$d_{ij}^{2}$—a standard \emph{double-centring} operation.
+
+% ─────────────────────────────────────────────
+\section*{Step 2: Matrix Form of Double Centring}
+% ─────────────────────────────────────────────
+
+Let $D \in \mathbb{R}^{n\times n}$ denote the matrix of squared
+dissimilarities, $D_{ij} = d_{ij}^{2}$, and let
+\[
+  H = I_n - \frac{1}{n}\mathbf{1}\mathbf{1}^{\top}
+\]
+be the \textbf{centring matrix}, where $\mathbf{1} = (1,\dots,1)^{\top}
+\in \mathbb{R}^n$.  $H$ is symmetric and idempotent ($H^2=H$); it
+projects out the mean of any vector it acts on.
+
+\textbf{Applying the double-centring formula (5) in matrix form}
+(see Appendix~A):
+\[
+  \boxed{B = -\tfrac{1}{2}\,H D H.}   \tag{6}
+\]
+
+This single expression computes $B$ directly from the observed
+dissimilarity matrix $D$.
+
+% ─────────────────────────────────────────────
+\section*{Step 3: Eigendecomposition of $B$}
+% ─────────────────────────────────────────────
+
+Because $B = Z Z^{\top}$ where $Z = [z_1 \mid \cdots \mid z_n]^{\top}
+\in \mathbb{R}^{n\times k}$, the matrix $B$ is \emph{symmetric positive
+semidefinite} (PSD; see Appendix~B).
+
+\textbf{Applying the eigendecomposition} (see Appendix~C) to $B$:
+\[
+  B = V \Lambda V^{\top},
+\]
+where
+\[
+  \Lambda = \operatorname{diag}(\lambda_1,\dots,\lambda_n),
+  \quad \lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_n \ge 0,
+\]
+and $V = [v_1 \mid \cdots \mid v_n]$ is orthogonal ($V^{\top}V = I$).
+
+To obtain a $k$-dimensional embedding, retain only the $k$ largest
+eigenvalues.  Partition:
+\[
+  \Lambda_k = \operatorname{diag}(\lambda_1,\dots,\lambda_k) \in
+  \mathbb{R}^{k\times k},
+  \qquad
+  V_k = [v_1 \mid \cdots \mid v_k] \in \mathbb{R}^{n\times k}.
+\]
+
+\textbf{Why truncate at $k$?}  Retaining the top $k$ eigenpairs gives the
+best rank-$k$ approximation to $B$ in the Frobenius norm
+(Eckart–Young theorem, Appendix~D), and hence the embedding that
+minimises the reconstruction error in the inner-product sense.
+
+% ─────────────────────────────────────────────
+\section*{Step 4: Recover the Coordinates}
+% ─────────────────────────────────────────────
+
+We need $Z_k \in \mathbb{R}^{n\times k}$ such that
+$Z_k Z_k^{\top} \approx B$.  From the truncated decomposition:
+\[
+  B \approx V_k \Lambda_k V_k^{\top}
+          = \bigl(V_k \Lambda_k^{1/2}\bigr)
+            \bigl(V_k \Lambda_k^{1/2}\bigr)^{\top}.
+\]
+
+Hence we set
+\[
+  \boxed{Z_k = V_k\,\Lambda_k^{1/2},}   \tag{7}
+\]
+where $\Lambda_k^{1/2} = \operatorname{diag}(\sqrt{\lambda_1},\dots,
+\sqrt{\lambda_k})$.
+
+The $i$-th row of $Z_k$ gives the $k$-dimensional embedding of object $i$:
+\[
+  z_i = \Lambda_k^{1/2} V_k^{\top} e_i \in \mathbb{R}^k,
+\]
+where $e_i$ is the $i$-th standard basis vector.
+
+% ─────────────────────────────────────────────
+\section*{Conclusion}
+% ─────────────────────────────────────────────
+
+Starting from pairwise squared dissimilarities $D_{ij} = d_{ij}^2$, cMDS
+recovers low-dimensional coordinates in three steps:
+
+\begin{enumerate}
+  \item \textbf{Double-centre} $D$ to obtain the Gram matrix of inner
+        products:
+        \[B = -\tfrac{1}{2}\,HDH.\]
+  \item \textbf{Eigendecompose} $B$; retain the $k$ largest eigenpairs
+        $(\lambda_i, v_i)$.
+  \item \textbf{Form coordinates}
+        $Z_k = V_k \Lambda_k^{1/2}$,
+        whose rows are the desired $k$-dimensional embeddings.
+\end{enumerate}
+
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{\centering
+  cMDS embeds objects in $\mathbb{R}^k$ by matching pairwise Euclidean
+  distances to the given dissimilarities via inner-product factorisation.
+}}
+\end{center}
+
+% ─────────────────────────────────────────────
+\appendix
+\section{Double Centring in Matrix Form}
+% ─────────────────────────────────────────────
+
+Let $H = I - \frac{1}{n}\mathbf{1}\mathbf{1}^{\top}$.
+For any matrix $A$, the $(i,j)$ entry of $HAH$ is:
+\[
+  (HAH)_{ij}
+  = A_{ij}
+  - \frac{1}{n}\sum_{j'}A_{ij'}
+  - \frac{1}{n}\sum_{i'}A_{i'j}
+  + \frac{1}{n^2}\sum_{i',j'}A_{i'j'}.
+\]
+Applying this with $A = D$ and multiplying by $-\tfrac{1}{2}$ recovers
+exactly formula (5), confirming $B = -\tfrac{1}{2}HDH$.
+
+% ─────────────────────────────────────────────
+\section{Symmetric Positive Semidefinite (PSD) Matrices}
+% ─────────────────────────────────────────────
+
+A matrix $M \in \mathbb{R}^{n\times n}$ is \textbf{symmetric positive
+semidefinite} if:
+\begin{itemize}
+  \item $M = M^{\top}$ (symmetry), and
+  \item $x^{\top}Mx \ge 0$ for all $x \in \mathbb{R}^n$.
+\end{itemize}
+Equivalently, all eigenvalues of $M$ are non-negative.
+
+$B = ZZ^{\top}$ is always PSD:
+$x^{\top}Bx = x^{\top}ZZ^{\top}x = \|Z^{\top}x\|^2 \ge 0$.
+
+If the given dissimilarities are \emph{not} Euclidean, some eigenvalues of
+$B$ may be (slightly) negative due to noise; in practice these are set to
+zero.
+
+% ─────────────────────────────────────────────
+\section{Spectral Theorem (Eigendecomposition of Symmetric Matrices)}
+% ─────────────────────────────────────────────
+
+\textbf{Theorem.}  Every real symmetric matrix $M \in \mathbb{R}^{n\times
+n}$ can be written as
+\[
+  M = V \Lambda V^{\top},
+\]
+where $V \in \mathbb{R}^{n\times n}$ is orthogonal ($V^{\top}V = I$) and
+$\Lambda = \operatorname{diag}(\lambda_1,\dots,\lambda_n)$ contains the
+real eigenvalues of $M$.
+
+For a PSD matrix, all $\lambda_i \ge 0$, so $\Lambda^{1/2}$ is
+well-defined.
+
+% ─────────────────────────────────────────────
+\section{Eckart–Young Theorem (Best Low-Rank Approximation)}
+% ─────────────────────────────────────────────
+
+\textbf{Theorem.}  Let $M = V\Lambda V^{\top}$ be the eigendecomposition
+of a symmetric PSD matrix, with eigenvalues ordered $\lambda_1 \ge \cdots
+\ge \lambda_n \ge 0$.  Among all rank-$k$ matrices $\hat{M}$, the one
+minimising $\|M - \hat{M}\|_F^2$ is
+\[
+  \hat{M} = V_k \Lambda_k V_k^{\top},
+\]
+where $V_k$ and $\Lambda_k$ retain only the top $k$ eigenpairs.
+
+In cMDS this justifies choosing the $k$ largest eigenvalues: the resulting
+embedding minimises the total squared error between $B$ and $Z_kZ_k^{\top}$.
+
+\end{document}
