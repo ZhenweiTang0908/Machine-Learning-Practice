@@ -1,0 +1,314 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{hyperref}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\begin{document}
+
+\title{A Concise Derivation of Laplacian Eigenmaps}
+\author{Zhenwei Tang}
+\date{}
+\maketitle
+
+% ============================================================
+\section*{Goal}
+% ============================================================
+
+Given $n$ high-dimensional data points
+\[
+  x_i \in \mathbb{R}^p, \qquad i = 1, \dots, n,
+\]
+Laplacian Eigenmaps (LE) seeks a \emph{low-dimensional} embedding
+\[
+  y_i \in \mathbb{R}^k, \qquad k \ll p,
+\]
+that \textbf{preserves local geometric structure}: points that are
+close in the original space should remain close in the embedding.
+
+The core idea is to encode \emph{local proximity} via a weighted
+graph, then find an embedding that minimises a weighted sum of
+squared pairwise distances---pulling nearby points together.
+
+% ============================================================
+\section*{Step 1: Construct the Neighbourhood Graph}
+% ============================================================
+
+\textbf{Why?} We want to capture only \emph{local} structure; global
+distances in high dimensions are unreliable (curse of dimensionality).
+
+Connect each $x_i$ to its $K$ nearest neighbours (or to all points
+within a ball of radius $\varepsilon$) to form an undirected graph
+$G = (V, E)$ with vertex set $V = \{1, \dots, n\}$ and edge set $E$.
+
+Assign edge weights using the \textbf{heat kernel}:
+\[
+  w_{ij} =
+  \begin{cases}
+    \exp\!\left(-\dfrac{\|x_i - x_j\|^2}{2\sigma^2}\right) & \text{if } (i,j)\in E,\\[6pt]
+    0 & \text{otherwise,}
+  \end{cases}
+\]
+where $\sigma > 0$ is a bandwidth parameter.  A larger $w_{ij}$
+indicates that $x_i$ and $x_j$ are more similar; a smaller distance
+yields a weight closer to 1.
+
+Collect the weights into the \textbf{weight matrix}
+$W \in \mathbb{R}^{n \times n}$, where $W_{ij} = w_{ij}$.
+
+% ============================================================
+\section*{Step 2: Formulate the Objective}
+% ============================================================
+
+\textbf{Why?} To preserve locality, we penalise configurations where
+nearby points (large $w_{ij}$) are mapped far apart.
+
+The objective to \emph{minimise} is
+\[
+  \boxed{\mathcal{L}(Y) = \frac{1}{2}\sum_{i,j} w_{ij}\,\|y_i - y_j\|^2,}
+\]
+where $Y = [y_1 \mid \cdots \mid y_n]^T \in \mathbb{R}^{n \times k}$
+collects all embedding vectors as rows.
+
+A large $w_{ij}$ forces the corresponding term $\|y_i-y_j\|^2$ to be
+small, exactly encoding the ``nearby points stay nearby'' requirement.
+
+% ============================================================
+\section*{Step 3: Simplify with the Graph Laplacian}
+% ============================================================
+
+\textbf{Why?} Expanding the quadratic form reveals a clean matrix
+expression involving two standard graph matrices.
+
+\textbf{Expanding the objective (one output dimension $\ell$):}
+Using $\|y_i - y_j\|^2 = \sum_{\ell=1}^k (Y_{i\ell}-Y_{j\ell})^2$,
+\[
+  \mathcal{L}(Y)
+  = \frac{1}{2}\sum_{\ell=1}^{k}\sum_{i,j} w_{ij}(Y_{i\ell}-Y_{j\ell})^2.
+\]
+
+Focus on a single column $f = Y_{:\ell} \in \mathbb{R}^n$.
+Expanding,
+\begin{align*}
+  \frac{1}{2}\sum_{i,j}w_{ij}(f_i-f_j)^2
+  &= \frac{1}{2}\sum_{i,j}w_{ij}(f_i^2 - 2f_if_j + f_j^2)\\
+  &= \sum_{i,j}w_{ij}f_i^2 - \sum_{i,j}w_{ij}f_if_j\\
+  &= \sum_i d_i f_i^2 - f^T W f,
+\end{align*}
+where we define the \textbf{degree} of node $i$ as
+\[
+  d_i = \sum_j w_{ij},
+\]
+and the \textbf{degree matrix} $D \in \mathbb{R}^{n\times n}$ as the
+diagonal matrix with $D_{ii} = d_i$.
+
+The expression $\sum_i d_i f_i^2 = f^T D f$, so
+\[
+  \frac{1}{2}\sum_{i,j}w_{ij}(f_i-f_j)^2 = f^T D f - f^T W f = f^T (D - W) f.
+\]
+
+Define the \textbf{(unnormalised) graph Laplacian}
+\[
+  L = D - W \in \mathbb{R}^{n \times n}.
+\]
+
+Summing over all $k$ output dimensions,
+\[
+  \mathcal{L}(Y) = \sum_{\ell=1}^{k} Y_{:\ell}^T L\, Y_{:\ell} = \operatorname{tr}(Y^T L Y).
+\]
+
+The objective therefore reduces to
+\[
+  \min_{Y \in \mathbb{R}^{n\times k}}\; \operatorname{tr}(Y^T L Y).
+\]
+
+% ============================================================
+\section*{Step 4: Add Constraints to Prevent Degenerate Solutions}
+% ============================================================
+
+\textbf{Why?} Without constraints, $Y = 0$ trivially minimises the
+objective; moreover, the embedding is defined only up to rotation and
+translation (non-uniqueness).  Two constraints are imposed.
+
+\textbf{Constraint 1 (scale).}  Fix the spread of the embedding to
+avoid collapse to a point:
+\[
+  Y^T D Y = I_k,
+\]
+where $I_k$ is the $k\times k$ identity matrix.  The degree matrix $D$
+acts as a measure: nodes with higher total weight (more or stronger
+connections) carry more ``mass''.
+
+\textbf{Constraint 2 (translation / constant removal).}  The
+all-ones vector $\mathbf{1}$ lies in the null space of $L$ (since
+$L\mathbf{1}=0$), corresponding to the trivial constant embedding.
+We exclude it by requiring each embedding coordinate to be
+$D$-orthogonal to $\mathbf{1}$:
+\[
+  Y^T D \mathbf{1} = 0.
+\]
+
+The constrained optimisation problem is therefore
+\[
+  \min_{Y \in \mathbb{R}^{n\times k}}\; \operatorname{tr}(Y^T L Y)
+  \quad \text{subject to} \quad Y^T D Y = I_k, \quad Y^T D\mathbf{1} = 0.
+\]
+
+% ============================================================
+\section*{Step 5: Reduce to a Generalised Eigenvalue Problem}
+% ============================================================
+
+\textbf{Why?} The constrained problem is a \emph{trace-minimisation
+under an orthogonality constraint}, a classical problem whose solution
+is given by the generalised eigenvectors with the smallest eigenvalues.
+
+\textbf{Applying the Lagrangian method.}
+For a single embedding direction $f \in \mathbb{R}^n$ (one column of $Y$),
+the problem is
+\[
+  \min_f f^T L f \quad \text{subject to} \quad f^T D f = 1.
+\]
+
+Utilising the method of Lagrange multipliers (see Appendix~A), form the Lagrangian
+\[
+  \mathcal{F}(f, \lambda) = f^T L f - \lambda (f^T D f - 1).
+\]
+
+Taking the derivative with respect to $f$ and setting it to zero (see Appendix~B):
+\[
+  \frac{\partial \mathcal{F}}{\partial f} = 2Lf - 2\lambda D f = 0
+  \implies L f = \lambda D f.
+\]
+
+This is a \textbf{generalised eigenvalue problem}:
+\[
+  Lf = \lambda D f.
+\]
+
+\textbf{Why the smallest eigenvalues?}  At a solution $Lf = \lambda Df$,
+the objective value satisfies
+\[
+  f^T L f = \lambda \underbrace{f^T D f}_{=1} = \lambda.
+\]
+Minimising $f^T L f$ is therefore equivalent to finding the
+\emph{smallest} eigenvalues $\lambda$.
+
+\textbf{Excluding the trivial solution.}
+$L$ is positive semi-definite (see Appendix~C) with $\mathbf{1}$ as a
+zero eigenvector; $\lambda_0 = 0$ gives the trivial constant embedding.
+The Constraint 2 from Step 4 ($Y^T D \mathbf{1} = 0$) removes this
+solution.
+
+\textbf{Solution.}
+Solve $Lf = \lambda Df$ and sort the eigenvalues
+\[
+  0 = \lambda_0 \le \lambda_1 \le \lambda_2 \le \cdots \le \lambda_{n-1}.
+\]
+Let $f_1, f_2, \dots, f_k$ be the eigenvectors corresponding to
+$\lambda_1, \dots, \lambda_k$ (the $k$ smallest \emph{non-zero}
+eigenvalues), each normalised so that $f_j^T D f_j = 1$.
+
+% ============================================================
+\section*{Conclusion}
+% ============================================================
+
+The Laplacian Eigenmaps embedding is
+\[
+  y_i = \begin{bmatrix} f_1(i) \\ f_2(i) \\ \vdots \\ f_k(i) \end{bmatrix}
+  \in \mathbb{R}^k, \qquad i = 1, \dots, n,
+\]
+where $f_j(i)$ denotes the $i$-th component of eigenvector $f_j$.
+
+The derivation proceeds as follows:
+
+\begin{enumerate}
+  \item Build a weighted neighbourhood graph to encode local proximity via $W$ and $D$.
+  \item Minimise $\operatorname{tr}(Y^T L Y)$, the weighted sum of squared pairwise distances in the embedding, where $L = D - W$.
+  \item Constrain $Y^T D Y = I_k$ (scale) and $Y^T D \mathbf{1} = 0$ (remove trivial solution).
+  \item Solve the generalised eigenvalue problem $L f = \lambda D f$; the $k$ eigenvectors with the smallest non-zero eigenvalues form the embedding.
+\end{enumerate}
+
+\begin{center}
+  \fbox{\parbox{0.88\textwidth}{\centering
+    Laplacian Eigenmaps preserves local structure by embedding data
+    into the eigenvectors of the graph Laplacian $L = D - W$
+    corresponding to the $k$ smallest non-zero eigenvalues of
+    $Lf = \lambda Df$.
+  }}
+\end{center}
+
+% ============================================================
+\appendix
+\section*{Appendix A: Method of Lagrange Multipliers}
+% ============================================================
+
+\textbf{Theorem.}
+Let $f : \mathbb{R}^n \to \mathbb{R}$ and $g : \mathbb{R}^n \to
+\mathbb{R}$ be continuously differentiable.  At a constrained extremum
+of $f(x)$ subject to $g(x) = 0$, there exists a scalar $\lambda \in
+\mathbb{R}$ (the \emph{Lagrange multiplier}) such that
+\[
+  \nabla f(x) = \lambda\, \nabla g(x).
+\]
+
+\textbf{Application here.}
+With $f(v) = v^T L v$ and $g(v) = v^T D v - 1 = 0$, the stationarity
+condition gives
+\[
+  \nabla_v (v^T L v) = \lambda\, \nabla_v (v^T D v)
+  \implies 2Lv = \lambda\cdot 2Dv
+  \implies Lv = \lambda Dv.
+\]
+
+% ============================================================
+\section*{Appendix B: Derivative of a Quadratic Form}
+% ============================================================
+
+For a symmetric matrix $M \in \mathbb{R}^{n\times n}$ and $v\in\mathbb{R}^n$,
+\[
+  \frac{\partial}{\partial v}(v^T M v) = 2Mv.
+\]
+
+\textbf{Derivation.}
+\begin{align*}
+  v^T M v &= \sum_{i,j} M_{ij} v_i v_j.\\
+  \frac{\partial}{\partial v_k}(v^T M v)
+    &= \sum_j M_{kj} v_j + \sum_i M_{ik} v_i
+     = (Mv)_k + (M^T v)_k
+     \overset{M=M^T}{=} 2(Mv)_k.
+\end{align*}
+In vector notation: $\nabla_v (v^T M v) = 2Mv$.
+
+% ============================================================
+\section*{Appendix C: The Graph Laplacian is Positive Semi-Definite}
+% ============================================================
+
+\textbf{Definition (Positive Semi-Definite, PSD).}
+A symmetric matrix $A \in \mathbb{R}^{n\times n}$ is \emph{positive
+semi-definite} (written $A \succeq 0$) if
+\[
+  f^T A f \ge 0 \quad \text{for all } f \in \mathbb{R}^n.
+\]
+Equivalently, all eigenvalues of $A$ are non-negative.  PSD matrices
+arise naturally as objective Hessians or, as here, as operators whose
+quadratic form counts a non-negative weighted sum.
+
+\textbf{Claim.} $L = D - W \succeq 0$.
+
+\textbf{Proof.}
+For any $f \in \mathbb{R}^n$, from Step 3 we already showed
+\[
+  f^T L f = \frac{1}{2}\sum_{i,j} w_{ij}(f_i - f_j)^2.
+\]
+Since $w_{ij} \ge 0$ and $(f_i - f_j)^2 \ge 0$ for all $i,j$, every
+term is non-negative, so $f^T L f \ge 0$.  Hence $L \succeq 0$. \qed
+
+\textbf{Consequence.}
+All eigenvalues of the generalised problem $Lf = \lambda Df$ are
+non-negative (given $D \succ 0$), and the smallest is $\lambda_0 = 0$
+with eigenvector $\mathbf{1}$.
+
+\end{document}

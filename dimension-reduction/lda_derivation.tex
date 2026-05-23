@@ -1,0 +1,246 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{hyperref}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\begin{document}
+
+\title{A Concise Derivation of Linear Discriminant Analysis}
+\author{Zhenwei Tang}
+\date{}
+\maketitle
+
+% -------------------------------------------------------
+\section*{Goal}
+% -------------------------------------------------------
+
+Given $n$ labeled data points
+\[
+  \{(x_i, c_i)\}_{i=1}^{n}, \quad x_i \in \mathbb{R}^p, \quad c_i \in \{1, \dots, K\},
+\]
+where $K$ is the number of classes, LDA seeks a linear projection
+\[
+  y = w^T x, \quad w \in \mathbb{R}^p, \quad y \in \mathbb{R},
+\]
+such that the projected data are \textbf{maximally separated between classes} while being \textbf{maximally compact within each class}.
+This single criterion is captured by the \emph{Fisher ratio}:
+\[
+  J(w) = \frac{w^T S_B\, w}{w^T S_W\, w},
+\]
+where $S_B$ is the \emph{between-class scatter matrix} and $S_W$ is the \emph{within-class scatter matrix} (both defined below).
+The derivation proceeds in four steps: define the scatter matrices, formulate the optimization, apply the generalized eigenvalue technique, and read off the solution.
+
+% -------------------------------------------------------
+\section*{Step 1: Define the Scatter Matrices}
+% -------------------------------------------------------
+
+\textbf{Notation.}
+\begin{itemize}
+  \item $n_k$ = number of samples in class $k$.
+  \item $\mu_k = \dfrac{1}{n_k}\displaystyle\sum_{i:\,c_i=k} x_i$ \quad (class mean).
+  \item $\mu = \dfrac{1}{n}\displaystyle\sum_{i=1}^n x_i = \dfrac{1}{n}\sum_{k=1}^K n_k\,\mu_k$ \quad (global mean).
+\end{itemize}
+
+\textbf{Within-class scatter matrix} $S_W \in \mathbb{R}^{p\times p}$: measures the total spread of samples around their own class mean.
+\[
+  S_W = \sum_{k=1}^{K} \sum_{i:\,c_i=k} (x_i - \mu_k)(x_i - \mu_k)^T.
+\]
+
+\textbf{Between-class scatter matrix} $S_B \in \mathbb{R}^{p\times p}$: measures how far the class means are from the global mean, weighted by class size.
+\[
+  S_B = \sum_{k=1}^{K} n_k\,(\mu_k - \mu)(\mu_k - \mu)^T.
+\]
+
+Both $S_W$ and $S_B$ are symmetric positive semi-definite (see Appendix~\ref{app:psd}).
+
+After projection onto direction $w$, the projected class mean is $w^T\mu_k$ and the projected global mean is $w^T\mu$.
+The scalar between-class and within-class scatters become, respectively,
+\[
+  \widetilde{s}_B = \sum_{k=1}^K n_k\,(w^T\mu_k - w^T\mu)^2 = w^T S_B\, w,
+\]
+\[
+  \widetilde{s}_W = \sum_{k=1}^K\sum_{i:\,c_i=k}(w^T x_i - w^T\mu_k)^2 = w^T S_W\, w.
+\]
+
+% -------------------------------------------------------
+\section*{Step 2: Formulate the Optimization Problem}
+% -------------------------------------------------------
+
+We wish to find $w$ that maximizes class separation relative to within-class spread.
+Formally:
+\[
+  \max_{w \in \mathbb{R}^p} \; J(w) = \frac{w^T S_B\, w}{w^T S_W\, w}.
+\]
+
+\textbf{Why the ratio?}
+Maximizing only $w^T S_B w$ is meaningless because we can make it arbitrarily large by scaling $w$.
+Dividing by $w^T S_W w$ removes the scale ambiguity and measures \emph{relative} separation.
+
+\textbf{Scale invariance.}
+$J(\alpha w) = J(w)$ for any $\alpha \neq 0$, so we may impose the normalization
+\[
+  w^T S_W\, w = 1
+\]
+without loss of generality.
+The problem becomes an equivalent constrained optimization:
+\[
+  \max_{w}\; w^T S_B\, w \quad \text{subject to} \quad w^T S_W\, w = 1.
+\]
+
+% -------------------------------------------------------
+\section*{Step 3: Apply the Lagrange Multiplier Method}
+% -------------------------------------------------------
+
+\textbf{Using the Lagrange multiplier method} (see Appendix~\ref{app:lagrange}), we introduce $\lambda \in \mathbb{R}$ and form the Lagrangian:
+\[
+  \mathcal{L}(w, \lambda) = w^T S_B\, w - \lambda\,(w^T S_W\, w - 1).
+\]
+
+\textbf{Taking the derivative with respect to $w$ and setting it to zero} (see Appendix~\ref{app:matderiv}):
+\[
+  \frac{\partial \mathcal{L}}{\partial w} = 2S_B\, w - 2\lambda\, S_W\, w = 0.
+\]
+
+This gives the \textbf{generalized eigenvalue equation}:
+\[
+  \boxed{S_B\, w = \lambda\, S_W\, w.}
+\]
+
+\textbf{Why this is useful.}
+The stationary points of $J(w)$ are exactly the generalized eigenvectors of the matrix pair $(S_B, S_W)$.
+Substituting a solution $w$ back into $J$:
+\[
+  J(w) = \frac{w^T S_B\, w}{w^T S_W\, w} = \frac{w^T (\lambda S_W\, w)}{w^T S_W\, w} = \lambda.
+\]
+Hence, the maximum of $J(w)$ equals the largest generalized eigenvalue $\lambda_{\max}$, achieved by the corresponding generalized eigenvector.
+
+% -------------------------------------------------------
+\section*{Step 4: Reduce to a Standard Eigenvalue Problem}
+% -------------------------------------------------------
+
+If $S_W$ is invertible (i.e., $n > p$ and no class is degenerate), multiply both sides of the generalized eigenvalue equation by $S_W^{-1}$:
+\[
+  S_W^{-1} S_B\, w = \lambda\, w.
+\]
+This is a \textbf{standard eigenvalue problem} for the matrix $S_W^{-1}S_B$.
+
+\textbf{Observation on rank.}
+$S_B$ is a sum of $K$ rank-1 matrices $(\mu_k - \mu)(\mu_k-\mu)^T$, so
+\[
+  \operatorname{rank}(S_B) \leq K - 1.
+\]
+Therefore $S_W^{-1}S_B$ has at most $K-1$ non-zero eigenvalues, and LDA can produce \textbf{at most $K-1$ discriminant directions}.
+
+% -------------------------------------------------------
+\section*{Step 5: Extract the Discriminant Directions}
+% -------------------------------------------------------
+
+Let $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_{K-1} > 0$ be the non-zero eigenvalues of $S_W^{-1}S_B$, with corresponding eigenvectors $w_1, w_2, \dots, w_{K-1}$.
+
+To project into a $d$-dimensional subspace ($d \leq K-1$), collect the top-$d$ eigenvectors:
+\[
+  W_d = [w_1 \mid w_2 \mid \cdots \mid w_d] \in \mathbb{R}^{p \times d}.
+\]
+
+The low-dimensional representation of a data point $x$ is:
+\[
+  y = W_d^T x \in \mathbb{R}^d.
+\]
+
+Each eigenvector $w_j$ is a \textbf{linear discriminant}: the direction along which the Fisher ratio is the $j$-th largest.
+
+% -------------------------------------------------------
+\section*{Conclusion}
+% -------------------------------------------------------
+
+LDA seeks a linear projection that maximizes the Fisher ratio
+\[
+  J(w) = \frac{w^T S_B\, w}{w^T S_W\, w},
+\]
+balancing between-class separation $S_B$ against within-class compactness $S_W$.
+By imposing $w^T S_W w = 1$ and applying the Lagrange multiplier method, the optimality condition reduces to the generalized eigenvalue problem
+\[
+  S_B\, w = \lambda\, S_W\, w,
+\]
+equivalently $S_W^{-1}S_B\, w = \lambda\, w$ when $S_W$ is invertible.
+The optimal directions are the eigenvectors corresponding to the $d$ largest eigenvalues.
+
+\begin{center}
+  \fbox{\parbox{0.88\textwidth}{\centering
+    LDA finds the linear directions that \textbf{maximize between-class scatter relative to within-class scatter},
+    obtained as the leading eigenvectors of $S_W^{-1}S_B$.
+    At most $K-1$ such directions exist for $K$ classes.
+  }}
+\end{center}
+
+% -------------------------------------------------------
+\appendix
+\section*{Appendices}
+% -------------------------------------------------------
+
+\subsection*{A\quad Lagrange Multiplier Method}
+\label{app:lagrange}
+
+Given a constrained optimization problem
+\[
+  \max_w\; f(w) \quad \text{subject to} \quad g(w) = 0,
+\]
+the \emph{Lagrange multiplier method} asserts that at any local optimum $w^*$, there exists a scalar $\lambda$ (the \emph{Lagrange multiplier}) such that
+\[
+  \nabla_w f(w^*) = \lambda\, \nabla_w g(w^*),
+\]
+i.e., the gradients of the objective and constraint are parallel.
+Equivalently, $w^*$ is a stationary point of the \emph{Lagrangian}
+\[
+  \mathcal{L}(w,\lambda) = f(w) - \lambda\, g(w).
+\]
+Setting $\nabla_w \mathcal{L} = 0$ gives the necessary first-order conditions.
+
+\subsection*{B\quad Matrix Derivative of a Quadratic Form}
+\label{app:matderiv}
+
+For a symmetric matrix $A \in \mathbb{R}^{p\times p}$ and vector $w \in \mathbb{R}^p$,
+\[
+  \frac{\partial}{\partial w}(w^T A\, w) = 2A\, w.
+\]
+\textit{Proof sketch.} Writing $(w^T A w) = \sum_{i,j} A_{ij} w_i w_j$, differentiate with respect to $w_k$:
+\[
+  \frac{\partial}{\partial w_k}\sum_{i,j} A_{ij} w_i w_j
+  = \sum_j A_{kj} w_j + \sum_i A_{ik} w_i = (Aw)_k + (A^T w)_k = 2(Aw)_k,
+\]
+using symmetry $A = A^T$. Hence $\nabla_w (w^TAw) = 2Aw$.
+
+\subsection*{C\quad Symmetric Positive Semi-Definite Matrices}
+\label{app:psd}
+
+A matrix $M \in \mathbb{R}^{p\times p}$ is \emph{symmetric positive semi-definite} (PSD), written $M \succeq 0$, if:
+\begin{enumerate}
+  \item $M = M^T$ (symmetry), and
+  \item $v^T M\, v \geq 0$ for all $v \in \mathbb{R}^p$.
+\end{enumerate}
+
+Any matrix of the form $M = \sum_i z_i z_i^T$ (a sum of outer products) is PSD, because
+\[
+  v^T M\, v = \sum_i v^T z_i z_i^T v = \sum_i (z_i^T v)^2 \geq 0.
+\]
+Both $S_W$ and $S_B$ have exactly this form, so they are PSD.
+
+If additionally $v^T M v > 0$ for all $v \neq 0$, then $M$ is \emph{positive definite} (PD), written $M \succ 0$, and $M$ is invertible.
+$S_W \succ 0$ whenever the within-class data span $\mathbb{R}^p$ (i.e., $n > p$ with full-rank scatter), which is the condition required in Step~4 for $S_W^{-1}$ to exist.
+
+\subsection*{D\quad Generalized Eigenvalue Problem}
+\label{app:geneig}
+
+Given two symmetric matrices $A, B \in \mathbb{R}^{p\times p}$ with $B \succ 0$, the \emph{generalized eigenvalue problem} is
+\[
+  A\, v = \lambda\, B\, v.
+\]
+A scalar $\lambda$ satisfying this (for some $v \neq 0$) is a \emph{generalized eigenvalue}; the corresponding $v$ is a \emph{generalized eigenvector}.
+When $B$ is invertible, this reduces to the standard eigenvalue problem $B^{-1}A\, v = \lambda\, v$.
+The generalized eigenvectors diagonalize the ratio $v^T A v / v^T B v$, and the maximum of this ratio equals the largest generalized eigenvalue.
+
+\end{document}
